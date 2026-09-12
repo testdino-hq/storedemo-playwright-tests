@@ -62,7 +62,7 @@ Folders → files → nested `describe`s map to suites → sub-suites in TestDin
 | `mobile-chrome` | `tests/responsive` on a Pixel 7 profile | 1 |
 | `api` | `tests/api` | 0 |
 
-Speed levers already applied: 16 workers, 3 s `expect` timeout, no trace/video, images & fonts
+Speed levers already applied: 16 workers, 3 s `expect` timeout, trace/video kept only for failures, images & fonts
 blocked at the context level, failing tests never retried. To go below ~30 s run sharded in CI
 (`--shard=1/4 … 4/4`, see `.github/workflows/playwright.yml`).
 

@@ -1,0 +1,57 @@
+name: Re-run failed tests
+
+# Dispatched from the TestDino run page. The inputs below are the contract the
+# dashboard checks for before offering this workflow; renaming one hides it.
+on:
+  workflow_dispatch:
+    inputs:
+      testdino_rerun_from:
+        description: TestDino run id to re-run from
+        required: true
+      testdino_rerun_scope:
+        description: failed | flaky | all
+        default: failed
+      testdino_rerun_test_ids:
+        description: Comma-separated pw_test_ids to run instead of the scope
+        required: false
+      testdino_rerun_exclude_ids:
+        description: Comma-separated pw_test_ids to drop from the scope
+        required: false
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Re-run ${{ inputs.testdino_rerun_scope }} tests from ${{ inputs.testdino_rerun_from }}
+        env:
+          TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
+          # Repo variable; unset falls back to the CLI default (app.testdino.com).
+          TESTDINO_SERVER_URL: ${{ vars.TESTDINO_SERVER_URL }}
+          TESTDINO_CI_RUN_ID: ${{ github.run_id }}
+          BASE_URL: https://storedemo.testdino.com
+          API_BASE_URL: https://storedemo-api.testdino.com/api
+          DEMO_USER_EMAIL: ${{ secrets.DEMO_USER_EMAIL }}
+          DEMO_USER_PASSWORD: ${{ secrets.DEMO_USER_PASSWORD }}
+          CHAOS: on
+          FLAKY_RATE: '0.4'
+          RERUN_TEST_IDS: ${{ inputs.testdino_rerun_test_ids }}
+          RERUN_EXCLUDE_IDS: ${{ inputs.testdino_rerun_exclude_ids }}
+        run: |
+          set -- --rerun "${{ inputs.testdino_rerun_scope }}" --from-run "${{ inputs.testdino_rerun_from }}"
+          if [ -n "$RERUN_TEST_IDS" ]; then set -- "$@" --test-ids "$RERUN_TEST_IDS"; fi
+          if [ -n "$RERUN_EXCLUDE_IDS" ]; then set -- "$@" --exclude-ids "$RERUN_EXCLUDE_IDS"; fi
+          npx tdpw test "$@"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rerun-report
+          path: playwright-report
+          retention-days: 7

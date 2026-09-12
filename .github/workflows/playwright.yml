@@ -27,6 +27,8 @@ jobs:
       - name: Run tests (shard ${{ matrix.shard }}/4)
         env:
           TESTDINO_TOKEN: ${{ secrets.TESTDINO_TOKEN }}
+          # Repo variable; unset falls back to the CLI default (app.testdino.com).
+          TESTDINO_SERVER_URL: ${{ vars.TESTDINO_SERVER_URL }}
           TESTDINO_CI_RUN_ID: ${{ github.run_id }}
           BASE_URL: https://storedemo.testdino.com
           API_BASE_URL: https://storedemo-api.testdino.com/api

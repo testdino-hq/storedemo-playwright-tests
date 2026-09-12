@@ -1,0 +1,33 @@
+{
+  "name": "storedemo-playwright-tests",
+  "version": "1.0.0",
+  "description": "End-to-end, API, visual, accessibility and performance test suite for the TestDino Demo Store (storedemo.testdino.com)",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:regression": "playwright test --grep @regression",
+    "test:e2e": "playwright test --project=chromium",
+    "test:api": "playwright test --project=api",
+    "test:mobile": "playwright test --project=mobile-chrome",
+    "test:cross-browser": "CROSS_BROWSER=1 playwright test --project=firefox --project=webkit",
+    "test:critical": "playwright test --grep @critical",
+    "test:stable": "CHAOS=off playwright test --grep-invert @known-bug",
+    "test:headed": "playwright test --headed --project=chromium",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen https://storedemo.testdino.com",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.55.0",
+    "@testdino/playwright": "latest",
+    "@types/node": "^24.1.0",
+    "dotenv": "^17.2.1",
+    "typescript": "^5.6.3"
+  },
+  "overrides": {
+    "chalk": "^4.1.2"
+  }
+}

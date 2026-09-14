@@ -168,7 +168,7 @@ test.describe('API @api @regression', () => {
       await c.dispose();
     });
     test('rate limiting after many failed logins @known-bug', async ({ request }) => {
-      bug('STORE-241: no rate limiting on /login');
+      bug('STORE-241: no rate limiting on /login api');
       let last = 0;
       for (let i = 0; i < 8; i++) last = (await request.post('login', { data: { email: DEMO_USER.email, password: `bad${i}` } })).status();
       expect(last).toBe(429);

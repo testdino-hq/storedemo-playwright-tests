@@ -1,4 +1,4 @@
-# TestDino Demo Store – Playwright Test Suites
+# TestDino Demo Store – Playwright Test Suite
 
 Fast demo-sized test suite for **https://storedemo.testdino.com** (React storefront) and its API
 **https://storedemo-api.testdino.com/api**. 172 tests, ~45 s locally, built the way a

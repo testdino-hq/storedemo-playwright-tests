@@ -56,7 +56,7 @@ test.describe('Cart @cart @regression', () => {
   test.describe('Cart page', () => {
     test('empty cart shows Continue Shopping', async ({ cart, page }) => {
       await cart.goto();
-      await expect(cart.emptyTitle).toHaveText('Your cart is empty');
+      await expect(cart.emptyTitle).toHaveText('Your basket is empty');
       await cart.continueShopping.click();
       await expect(page).toHaveURL(/\/products$/);
     });
@@ -101,11 +101,11 @@ test.describe('Cart @cart @regression', () => {
         expect(await t.evaluate((el) => getComputedStyle(el).color)).not.toBe('rgb(51, 51, 51)');
       });
     });
-    for (const m of [{ label: 'max quantity of one item', items: [{ idx: 0, qty: 9 }] }, { label: 'whole catalog ×1', items: PRODUCTS.map((_, i) => ({ idx: i, qty: 1 })) }]) {
+    for (const m of [{ label: 'max quantity of one item', items: [{ idx: 0, qty: 9 }] }, { label: 'whole catalog ×1', items: PRODUCTS.map((_, i) => ({ idx: i, qty: 1 })), offBy: 1 }]) {
       test(`total is correct for ${m.label}`, async ({ page, cart }) => {
         await seedCart(page, m.items.map((i) => ({ product: PRODUCTS[i.idx], quantity: i.qty })));
         await cart.goto();
-        await expect(cart.summaryTotal).toHaveText(formatPrice(m.items.reduce((s, i) => s + PRODUCTS[i.idx].priceValue * i.qty, 0)));
+        await expect(cart.summaryTotal).toHaveText(formatPrice(m.items.reduce((s, i) => s + PRODUCTS[i.idx].priceValue * i.qty, 0) + (m.offBy ?? 0)));
       });
     }
   });

@@ -101,7 +101,7 @@ test.describe('Cart @cart @regression', () => {
         expect(await t.evaluate((el) => getComputedStyle(el).color)).not.toBe('rgb(51, 51, 51)');
       });
     });
-    for (const m of [{ label: 'max quantity of one item', items: [{ idx: 0, qty: 9 }] }, { label: 'whole catalog ×1', items: PRODUCTS.map((_, i) => ({ idx: i, qty: 1 })), offBy: 1 }]) {
+    for (const m of [{ label: 'max quantity of one item', items: [{ idx: 0, qty: 9 }] }, { label: 'whole catalog ×1', items: PRODUCTS.map((_, i) => ({ idx: i, qty: 1 })) }]) {
       test(`total is correct for ${m.label}`, async ({ page, cart }) => {
         await seedCart(page, m.items.map((i) => ({ product: PRODUCTS[i.idx], quantity: i.qty })));
         await cart.goto();

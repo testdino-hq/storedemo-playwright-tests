@@ -13,6 +13,11 @@ test.describe('Content @content @regression', () => {
     test('footer copyright shows the current year', async ({ footer }) => {
       await expect(footer.copyright).toHaveText(`© ${new Date().getFullYear()} TestDino`);
     });
+    // Fails its first attempt every run and passes on the retry, so it is always flaky (Test Controls demo).
+    test('footer copyright passes only on retry', async ({ footer }, testInfo) => {
+      expect(testInfo.retry, 'first attempt fails on purpose').toBeGreaterThan(0);
+      await expect(footer.copyright).toHaveText(`© ${new Date().getFullYear()} TestDino`);
+    });
     for (const p of [{ id: 'shipping-policy', h: 'Shipping Policy' }, { id: 'return-policy', h: 'Return & Refund Policy' }, { id: 'faq', h: 'Frequently Asked Questions' }] as const) {
       test(`footer policy "${p.id}" opens ${p.h}`, async ({ footer, page }) => {
         await footer.policyLink(p.id).click();

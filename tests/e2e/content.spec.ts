@@ -18,6 +18,13 @@ test.describe('Content @content @regression', () => {
       expect(testInfo.retry, 'first attempt fails on purpose').toBeGreaterThan(0);
       await expect(footer.copyright).toHaveText(`© ${new Date().getFullYear()} TestDino`);
     });
+    // Fails every run with fresh ids and timings, to exercise known-error matching (TDV2-963).
+    test('payment API error with changing ids', async () => {
+      // Always a letter and a digit, like a real request id.
+      const requestId = `r${Math.floor(Math.random() * 10)}${Math.random().toString(16).slice(2, 7)}`;
+      const ms = 1000 + Math.floor(Math.random() * 900);
+      throw new Error(`Payment failed: requestId=${requestId} account=10234 took ${ms}ms`);
+    });
     for (const p of [{ id: 'shipping-policy', h: 'Shipping Policy' }, { id: 'return-policy', h: 'Return & Refund Policy' }, { id: 'faq', h: 'Frequently Asked Questions' }] as const) {
       test(`footer policy "${p.id}" opens ${p.h}`, async ({ footer, page }) => {
         await footer.policyLink(p.id).click();

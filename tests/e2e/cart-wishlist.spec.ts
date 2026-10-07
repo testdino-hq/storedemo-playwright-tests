@@ -91,7 +91,7 @@ test.describe('Cart @cart @regression', () => {
         await seedCart(userPage, [{ product: PRODUCTS[0] }]);
         await u.cart.goto();
         await u.cart.checkoutButton.click();
-        await expect(userPage).toHaveURL(/\/checkout$/);
+        await expect(userPage).toHaveURL(/\/payment$/);
       });
       test('remove toast is readable @known-bug', async ({ cart }, testInfo) => {
         testInfo.annotations.push({ type: 'issue', description: 'STORE-070: #333 text on a black toast' });

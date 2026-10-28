@@ -31,7 +31,8 @@ jobs:
         with:
           repository: testdino-inc/demo-website
           ref: ${{ inputs.app_sha }}
-          token: ${{ secrets.DEMO_WEBSITE_READ_TOKEN }}
+          # demo-website is a personal-account repo, so a read-only deploy key is the narrowest access.
+          ssh-key: ${{ secrets.DEMO_WEBSITE_DEPLOY_KEY }}
           path: app
       - uses: actions/setup-node@v4
         with:

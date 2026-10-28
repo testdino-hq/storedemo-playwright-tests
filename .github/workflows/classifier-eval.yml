@@ -1,0 +1,54 @@
+name: Classifier Eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Scenario id from the eval catalogue (e.g. U01)
+        required: true
+      repeat:
+        description: Times to run each test (5 for unstable scenarios)
+        required: false
+        default: '1'
+
+run-name: classifier-eval ${{ inputs.scenario }} x${{ inputs.repeat }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Require the eval project token
+        env:
+          TESTDINO_EVAL_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
+        run: test -n "$TESTDINO_EVAL_TOKEN" || { echo "TESTDINO_EVAL_TOKEN is empty"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run eval suite
+        env:
+          # Reports to the "classifier acc test" project, never to storedemo's.
+          TESTDINO_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
+          TESTDINO_SERVER_URL: ${{ vars.TESTDINO_SERVER_URL }}
+          TESTDINO_CI_RUN_ID: ${{ github.run_id }}
+          BASE_URL: https://storedemo.testdino.com
+          API_BASE_URL: https://storedemo-api.testdino.com/api
+          DEMO_USER_EMAIL: ${{ secrets.DEMO_USER_EMAIL }}
+          DEMO_USER_PASSWORD: ${{ secrets.DEMO_USER_PASSWORD }}
+          CHAOS: 'off'
+        # Excludes the suite's own planted failures so only eval scenarios fail.
+        run: >
+          npx playwright test tests/e2e tests/smoke tests/responsive
+          --project=chromium --project=mobile-chrome
+          --retries=0 --repeat-each=${{ inputs.repeat }}
+          --grep-invert "@known-bug|passes only on retry|payment API error with changing ids|empty cart shows Continue Shopping|Checkout takes a logged-in user to checkout"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ inputs.scenario }}
+          path: playwright-report
+          retention-days: 30

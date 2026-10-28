@@ -31,9 +31,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Run eval suite
         env:
-          # Reports to the "classifier acc test" project, never to storedemo's.
+          # Reports to the production "classifier acc test" project; TESTDINO_SERVER_URL stays
+          # unset because the repo variable points storedemo's own runs at staging.
           TESTDINO_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
-          TESTDINO_SERVER_URL: ${{ vars.TESTDINO_SERVER_URL }}
           TESTDINO_CI_RUN_ID: ${{ github.run_id }}
           BASE_URL: https://storedemo.testdino.com
           API_BASE_URL: https://storedemo-api.testdino.com/api
@@ -42,10 +42,16 @@ jobs:
           CHAOS: 'off'
         # Excludes the suite's own planted failures so only eval scenarios fail.
         run: >
+          set -o pipefail;
           npx playwright test tests/e2e tests/smoke tests/responsive
           --project=chromium --project=mobile-chrome
           --retries=0 --repeat-each=${{ inputs.repeat }}
           --grep-invert "@known-bug|passes only on retry|payment API error with changing ids|empty cart shows Continue Shopping|Checkout takes a logged-in user to checkout"
+          2>&1 | tee eval-run.log
+      # The reporter only logs auth/upload errors, which would leave a green run with no results.
+      - name: Fail if results did not reach TestDino
+        if: always()
+        run: "! grep -qE 'Failed to initialize reporter|Authentication failed' eval-run.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

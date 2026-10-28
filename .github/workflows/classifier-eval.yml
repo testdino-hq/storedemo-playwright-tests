@@ -75,7 +75,7 @@ jobs:
       # The reporter only logs auth/upload errors, which would leave a green run with no results.
       - name: Fail if results did not reach TestDino
         if: always()
-        run: "! grep -qE 'Failed to initialize reporter|Authentication failed' eval-run.log"
+        run: "test -s eval-run.log && ! grep -qE 'Failed to initialize reporter|Authentication failed' eval-run.log"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

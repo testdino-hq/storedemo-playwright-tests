@@ -6,12 +6,15 @@ on:
       scenario:
         description: Scenario id from the eval catalogue (e.g. U01)
         required: true
+      app_sha:
+        description: testdino-inc/demo-website commit to build and test
+        required: true
       repeat:
         description: Times to run each test (5 for unstable scenarios)
         required: false
         default: '1'
 
-run-name: classifier-eval ${{ inputs.scenario }} x${{ inputs.repeat }}
+run-name: classifier-eval ${{ inputs.scenario }} app@${{ inputs.app_sha }} x${{ inputs.repeat }}
 
 jobs:
   test:
@@ -23,19 +26,40 @@ jobs:
           TESTDINO_EVAL_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
         run: test -n "$TESTDINO_EVAL_TOKEN" || { echo "TESTDINO_EVAL_TOKEN is empty"; exit 1; }
       - uses: actions/checkout@v4
+      # The app is built from the exact commit under test; Vercel's Hobby plan blocks deploys of our commits.
+      - uses: actions/checkout@v4
+        with:
+          repository: testdino-inc/demo-website
+          ref: ${{ inputs.app_sha }}
+          token: ${{ secrets.DEMO_WEBSITE_READ_TOKEN }}
+          path: app
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/frontend/package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Build the app frontend
+        working-directory: app/frontend
+        env:
+          REACT_APP_BASE_URL: https://storedemo-api.testdino.com/api
+        run: npm ci && npm run build
+      - name: Serve the build on localhost:3000
+        run: |
+          npx --yes serve@14.2.4 -s app/frontend/build -l 3000 > serve.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 > /dev/null && exit 0; sleep 1; done
+          cat serve.log; exit 1
       - name: Run eval suite
         env:
           # Reports to the production "classifier acc test" project; TESTDINO_SERVER_URL stays
           # unset because the repo variable points storedemo's own runs at staging.
           TESTDINO_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
           TESTDINO_CI_RUN_ID: ${{ github.run_id }}
-          BASE_URL: https://storedemo.testdino.com
+          # The live API allows the localhost:3000 origin (CORS).
+          BASE_URL: http://localhost:3000
           API_BASE_URL: https://storedemo-api.testdino.com/api
           DEMO_USER_EMAIL: ${{ secrets.DEMO_USER_EMAIL }}
           DEMO_USER_PASSWORD: ${{ secrets.DEMO_USER_PASSWORD }}

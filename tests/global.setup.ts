@@ -25,7 +25,8 @@ setup('provision shared demo user session', async () => {
   const body = await login.json();
   expect(body.user?.token).toBeTruthy();
 
-  fs.mkdirSync(path.dirname(DEMO_STORAGE_STATE), { recursive: true });
-  fs.writeFileSync(DEMO_STORAGE_STATE, JSON.stringify(storageStateFor(body.user.token), null, 2));
+  const sessionFile = path.resolve(__dirname, '../.auth/session/demo-user.json');
+  fs.mkdirSync(path.dirname(sessionFile), { recursive: true });
+  fs.writeFileSync(sessionFile, JSON.stringify(storageStateFor(body.user.token), null, 2));
   await api.dispose();
 });

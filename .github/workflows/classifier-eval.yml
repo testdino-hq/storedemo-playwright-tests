@@ -60,7 +60,7 @@ jobs:
           TESTDINO_TOKEN: ${{ secrets.TESTDINO_EVAL_TOKEN }}
           TESTDINO_CI_RUN_ID: ${{ github.run_id }}
           # The live API allows the localhost:3000 origin (CORS).
-          BASE_URL: http://localhost:3000
+          BASE_URL: http://locahost:3000
           API_BASE_URL: https://storedemo-api.testdino.com/api
           DEMO_USER_EMAIL: ${{ secrets.DEMO_USER_EMAIL }}
           DEMO_USER_PASSWORD: ${{ secrets.DEMO_USER_PASSWORD }}
